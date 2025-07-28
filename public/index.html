@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hello World</title>
+
+
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            color: #333;
+            text-align: center;
+            padding: 50px;
+        }
+        h1 {
+            color: #4CAF50;
+        }
+        p {
+            font-size: 20px;
+        }
+        a {
+            color: #2196F3;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Hello, World!</h1>
+    <p>Welcome to my simple HTML page.</p>
+    <p>Feel free to explore more!</p>
+    <a href="https://www.example.com">Visit Example.com</a>
+</body>
+<script>
+    document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden') {
+    document.body.innerHTML = ''; // 저장 시도 시 콘텐츠 제거
+  }
+});
+</script>
+
+</html>
