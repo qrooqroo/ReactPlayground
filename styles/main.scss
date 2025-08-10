@@ -1,15 +1,21 @@
-@import "tailwindcss";
+@use "tailwindcss";
 
 // Abstracts
-@import 'abstracts/_variables';
-@import 'abstracts/_functions';
-@import 'abstracts/_mixins';
+@use 'abstracts/_variables';
+@use 'abstracts/_functions';
+@use 'abstracts/_mixins';
 
 // Components
-@import 'components/_buttons';
+@use 'components/_buttons';
 
 // Layout
-@import 'layout/_header';
-@import 'layout/_footer';
-@import 'layout/_navbar';
-@import 'layout/_sidebar';
+@use 'layout/_header';
+@use 'layout/_footer';
+@use 'layout/_navbar';
+@use 'layout/_sidebar';
+
+@use 'tetris';
+
+div.ql-editor {
+  min-height: 500px;
+}
