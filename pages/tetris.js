@@ -104,6 +104,31 @@ function TetrisPage() {
     return false;
   };
 
+  const hardDrop = () => {
+    if (paused || isGameOver) return;
+
+    let dropY = position.y;
+    const newPos = { ...position };
+
+    while (!checkCollision(board, tetromino, { ...newPos, y: dropY + 1 })) {
+      dropY++;
+    }
+
+    const finalPosition = { x: position.x, y: dropY };
+
+    // 고정 전에 Game Over 판단
+    if (isGameOverByFix(tetromino, finalPosition)) {
+      setIsGameOver(true);
+      return;
+    }
+
+    const fixedBoard = fixTetrominoToBoard(board, tetromino, finalPosition);
+    const clearedBoard = clearFullRows(fixedBoard);
+
+    setBoard(clearedBoard);
+    spawnNewTetromino(clearedBoard);
+  };
+
   const moveDown = () => {
     if (paused || isGameOver) return;
 
@@ -210,6 +235,7 @@ function TetrisPage() {
     else if (e.key === 'ArrowRight') move(1);
     else if (e.key === 'ArrowDown') moveDown();
     else if (e.key === 'ArrowUp') rotateTetromino();
+    else if (e.code === 'Space') hardDrop(); // Space 키로 하드 드롭
   };
 
   useEffect(() => {
@@ -317,7 +343,7 @@ function TetrisPage() {
       <div style={{ display: 'flex', gap: '40px' }}>
         <Board board={drawBoard()} />
         <div>
-          <div style={{ color: 'white', fontSize: '16px', fontWeight: 'bold', marginBottom: '4px'}}>
+          <div style={{ color: 'white', fontSize: '16px', fontWeight: 'bold', marginBottom: '4px' }}>
             Total Score
           </div>
           <div style={{ color: 'white', fontSize: '14px', marginBottom: '20px' }}>

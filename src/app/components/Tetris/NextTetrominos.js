@@ -36,7 +36,7 @@ const NextTetrominos = ({ queue }) => {
     width: `${blockWidth}px`,
     height: `${blockHeight}px`,
     display: 'flex',
-    alignItems: 'center',
+    alignItems: 'top',
     justifyContent: 'center',
   };
 
