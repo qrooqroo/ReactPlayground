@@ -1,0 +1,40 @@
+.App {
+  text-align: center;
+}
+
+.board {
+  display: grid;
+  grid-template-rows: repeat(20, 20px);
+  width: 200px;
+  margin: 0 auto;
+  border: 2px solid #333;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: repeat(10, 20px);
+}
+
+.cell {
+  width: 20px;
+  height: 20px;
+  border: 1px solid #ccc;
+  background-color: white;
+}
+
+.cell.filled {
+  background-color: #00f;
+}
+
+.title {
+  position: 'absolute';
+  top: '40px';
+  left: '50%';
+  transform: 'translateX(-50%)';
+  color: 'white';
+  padding: '12px 24px';
+  font-size: '28px';
+  font-weight: 'bold';
+  border-radius: '6px';
+  z-index: 10;
+}

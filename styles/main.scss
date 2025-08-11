@@ -1,0 +1,21 @@
+@use "tailwindcss";
+
+// Abstracts
+@use 'abstracts/_variables';
+@use 'abstracts/_functions';
+@use 'abstracts/_mixins';
+
+// Components
+@use 'components/_buttons';
+
+// Layout
+@use 'layout/_header';
+@use 'layout/_footer';
+@use 'layout/_navbar';
+@use 'layout/_sidebar';
+
+@use './tetris.scss';
+
+div.ql-editor {
+  min-height: 500px;
+}
