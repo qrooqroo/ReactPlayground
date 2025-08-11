@@ -20,13 +20,24 @@ function TetrisPage() {
   const [position, setPosition] = useState({ x: 3, y: -2 });
   const [isGameOver, setIsGameOver] = useState(false);
   const [score, setScore] = useState(0);
+  const [paused, setIsPaused] = useState(false);
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        setIsPaused(!paused);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  });
 
   useEffect(() => {
     const interval = setInterval(() => {
-      if (!isGameOver) moveDown();
+      if (!isGameOver && !paused) moveDown();
     }, 500);
     return () => clearInterval(interval);
-  }, [position, isGameOver]);
+  }, [position, isGameOver, paused]);
 
   useEffect(() => {
     setTetrominoQueue(generateTetrominoBag());
@@ -94,12 +105,13 @@ function TetrisPage() {
   };
 
   const moveDown = () => {
+    if (paused || isGameOver) return;
+
     const newPos = { x: position.x, y: position.y + 1 };
 
     if (!checkCollision(board, tetromino, newPos)) {
       setPosition(newPos);
     } else {
-      // 블록 고정 전에 Game Over 판단
       if (isGameOverByFix(tetromino, position)) {
         setIsGameOver(true);
         return;
@@ -155,7 +167,7 @@ function TetrisPage() {
     setTetromino(newTetromino);
     setPosition(initialPosition);
 
-    if (nextQueue.length < 3) {
+    if (nextQueue.length < 4) {
       nextQueue.push(...generateTetrominoBag());
     }
 
@@ -187,7 +199,12 @@ function TetrisPage() {
   };
 
   const handleKeyDown = (e) => {
-    if (isGameOver) return;
+    if (e.key === 'Escape') {
+      setIsPaused(prev => !prev);
+      return;
+    }
+
+    if (isGameOver || paused) return;
 
     if (e.key === 'ArrowLeft') move(-1);
     else if (e.key === 'ArrowRight') move(1);
@@ -278,10 +295,36 @@ function TetrisPage() {
           </button>
         </div>
       )}
+      {paused && !isGameOver && (
+        <div
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            backgroundColor: 'rgba(0, 0, 0, 0.6)',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            zIndex: 998,
+          }}
+        >
+          <h1 style={{ color: 'white', fontSize: '48px' }}>Paused</h1>
+        </div>
+      )}
 
       <div style={{ display: 'flex', gap: '40px' }}>
         <Board board={drawBoard()} />
-        <NextTetrominos queue={tetrominoQueue} />
+        <div>
+          <div style={{ color: 'white', fontSize: '16px', fontWeight: 'bold', marginBottom: '4px'}}>
+            Total Score
+          </div>
+          <div style={{ color: 'white', fontSize: '14px', marginBottom: '20px' }}>
+            {score}
+          </div>
+          <NextTetrominos queue={tetrominoQueue} />
+        </div>
       </div>
     </div>
   );

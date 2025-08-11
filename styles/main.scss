@@ -14,7 +14,7 @@
 @use 'layout/_navbar';
 @use 'layout/_sidebar';
 
-@use 'tetris';
+@use './tetris.scss';
 
 div.ql-editor {
   min-height: 500px;
