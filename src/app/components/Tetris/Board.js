@@ -8,7 +8,10 @@ const Board = ({ board }) => {
           {row.map((cell, x) => (
             <div
               key={x}
-              className={`cell ${cell !== 0 ? 'filled' : ''}`}
+              className={`cell ${cell.isFilled ? 'filled' : ''}`}
+              style={{
+                backgroundColor: cell.color ? cell.color : 'transparent',
+              }}
             />
           ))}
         </div>

@@ -53,7 +53,7 @@ const NextTetrominos = ({ queue }) => {
                 key={x}
                 style={{
                   ...cellStyle,
-                  backgroundColor: cell ? '#0ff' : 'transparent',
+                  backgroundColor: cell ? tetromino.color : 'transparent',
                   border: cell ? '1px solid #444' : 'none',
                 }}
               />

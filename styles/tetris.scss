@@ -1,6 +1,5 @@
 .App {
   text-align: center;
-  margin-top: 20px;
 }
 
 .board {
@@ -27,3 +26,15 @@
   background-color: #00f;
 }
 
+.title {
+  position: 'absolute';
+  top: '40px';
+  left: '50%';
+  transform: 'translateX(-50%)';
+  color: 'white';
+  padding: '12px 24px';
+  font-size: '28px';
+  font-weight: 'bold';
+  border-radius: '6px';
+  z-index: 10;
+}

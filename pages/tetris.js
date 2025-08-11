@@ -16,9 +16,10 @@ function TetrisPage() {
 
   const [tetrominoQueue, setTetrominoQueue] = useState([]);
   const [board, setBoard] = useState(createBoard(ROWS, COLS));
-  const [tetromino, setTetromino] = useState(TETROMINOS['I'] || { shape: [] });
-  const [position, setPosition] = useState({ x: 3, y: 0 });
+  const [tetromino, setTetromino] = useState(null);
+  const [position, setPosition] = useState({ x: 3, y: -2 });
   const [isGameOver, setIsGameOver] = useState(false);
+  const [score, setScore] = useState(0);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -31,60 +32,131 @@ function TetrisPage() {
     setTetrominoQueue(generateTetrominoBag());
   }, []);
 
+  useEffect(() => {
+    const initialQueue = generateTetrominoBag();
+    const firstTetromino = initialQueue.shift();
+
+    setTetrominoQueue(initialQueue);
+    setTetromino(firstTetromino);
+  }, []);
+
+  const handleRestart = () => {
+    const newBoard = createBoard(ROWS, COLS);
+    const newQueue = generateTetrominoBag();
+    const firstTetromino = newQueue.shift();
+
+    setBoard(newBoard);
+    setTetrominoQueue(newQueue);
+    setTetromino(firstTetromino);
+    setPosition({ x: 3, y: -2 });
+    setIsGameOver(false);
+  };
+
+  const clearFullRows = (board) => {
+    const newBoard = board.filter(row =>
+      !row.every(cell => cell.isFilled)
+    );
+
+    const clearedLines = ROWS - newBoard.length;
+
+    const emptyRows = Array.from({ length: clearedLines }, () =>
+      Array.from({ length: COLS }, () => ({ isFilled: 0, color: null }))
+    );
+
+    const finalBoard = [...emptyRows, ...newBoard];
+
+    // 보드 길이 보장
+    while (finalBoard.length < ROWS) {
+      finalBoard.unshift(
+        Array.from({ length: COLS }, () => ({ isFilled: 0, color: null }))
+      );
+    }
+
+    if (clearedLines > 0) {
+      setScore(prev => prev + clearedLines * 100);
+    }
+
+    return finalBoard;
+  };
+
+  const isGameOverByFix = (tetromino, position) => {
+    for (let y = 0; y < tetromino.shape.length; y++) {
+      for (let x = 0; x < tetromino.shape[y].length; x++) {
+        if (tetromino.shape[y][x] !== 0) {
+          const newY = position.y + y;
+          if (newY < 0) {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
+  };
+
   const moveDown = () => {
     const newPos = { x: position.x, y: position.y + 1 };
 
     if (!checkCollision(board, tetromino, newPos)) {
       setPosition(newPos);
     } else {
-      fixTetrominoToBoard(board, tetromino, position);
-      spawnNewTetromino(board);
+      // 블록 고정 전에 Game Over 판단
+      if (isGameOverByFix(tetromino, position)) {
+        setIsGameOver(true);
+        return;
+      }
+
+      const fixedBoard = fixTetrominoToBoard(board, tetromino, position);
+      const clearedBoard = clearFullRows(fixedBoard);
+
+      setBoard(clearedBoard);
+      spawnNewTetromino(clearedBoard);
     }
   };
 
   const move = (dir) => {
     const newPos = { x: position.x + dir, y: position.y };
-    if (!checkCollision(board, tetromino, newPos)) {
+    if (!checkCollision(board, tetromino, newPos, ROWS, COLS)) {
       setPosition(newPos);
     }
   };
 
   const fixTetrominoToBoard = (board, tetromino, position) => {
     const newBoard = [...board.map(row => [...row])];
+
     tetromino.shape.forEach((row, y) => {
       row.forEach((value, x) => {
         if (value !== 0) {
           const boardY = position.y + y;
           const boardX = position.x + x;
+
           if (boardY >= 0 && boardY < ROWS && boardX >= 0 && boardX < COLS) {
-            newBoard[boardY][boardX] = value;
+            newBoard[boardY][boardX] = { isFilled: value, color: tetromino.color };
           }
         }
       });
     });
-    setBoard(newBoard);
+
+    return newBoard;
   };
+
 
   const spawnNewTetromino = (board) => {
     const nextQueue = [...tetrominoQueue];
     const newTetromino = nextQueue.shift();
 
-    // 새 블록이 충돌하면 게임 오버
-    if (checkCollision(board, newTetromino, { x: 3, y: 0 })) {
-      // ✅ 마지막 블록을 고정
-      fixTetrominoToBoard(board, tetromino, position);
+    const initialY = -newTetromino.shape.length; // 화면 위에서 시작
+    const initialPosition = { x: 3, y: initialY };
 
-      // ✅ 게임 오버 상태만 설정
+    if (checkCollision(board, newTetromino, initialPosition)) {
       setIsGameOver(true);
       return;
     }
 
     setTetromino(newTetromino);
-    setPosition({ x: 3, y: 0 });
+    setPosition(initialPosition);
 
     if (nextQueue.length < 3) {
-      const newBag = generateTetrominoBag();
-      nextQueue.push(...newBag);
+      nextQueue.push(...generateTetrominoBag());
     }
 
     setTetrominoQueue(nextQueue);
@@ -98,9 +170,20 @@ function TetrisPage() {
     const rotatedShape = rotate(tetromino.shape);
     const rotatedTetromino = { ...tetromino, shape: rotatedShape };
 
-    if (!checkCollision(board, rotatedTetromino, position)) {
+    if (!checkCollision(board, rotatedTetromino, position, ROWS, COLS)) {
       setTetromino(rotatedTetromino);
     }
+  };
+
+  const hasOverflowAfterFix = (board) => {
+    for (let y = 0; y < 2; y++) { // 상단 2줄만 검사
+      for (let x = 0; x < COLS; x++) {
+        if (board[y][x]?.isFilled) {
+          return true;
+        }
+      }
+    }
+    return false;
   };
 
   const handleKeyDown = (e) => {
@@ -119,19 +202,31 @@ function TetrisPage() {
 
   const drawBoard = () => {
     const newBoard = [...board.map(row => [...row])];
+
     if (tetromino?.shape) {
       tetromino.shape.forEach((row, y) => {
         row.forEach((value, x) => {
           if (value !== 0) {
             const boardY = position.y + y;
             const boardX = position.x + x;
-            if (boardY >= 0 && boardY < ROWS && boardX >= 0 && boardX < COLS) {
-              newBoard[boardY][boardX] = value;
+
+            if (
+              boardY >= 0 &&
+              boardY < ROWS &&
+              boardX >= 0 &&
+              boardX < COLS &&
+              !newBoard[boardY][boardX]?.isFilled // 이미 채워진 칸은 덮지 않음
+            ) {
+              newBoard[boardY][boardX] = {
+                isFilled: value,
+                color: tetromino.color,
+              };
             }
           }
         });
       });
     }
+
     return newBoard;
   };
 
@@ -152,27 +247,40 @@ function TetrisPage() {
         <div
           style={{
             position: 'absolute',
-            top: '40px',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            backgroundColor: 'rgba(0,0,0,0.8)',
-            color: 'white',
-            padding: '12px 24px',
-            fontSize: '28px',
-            fontWeight: 'bold',
-            borderRadius: '6px',
-            zIndex: 10,
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            alignItems: 'center',
+            zIndex: 999,
           }}
         >
-          Game Over
+          <h1 style={{ color: 'white', fontSize: '48px', marginBottom: '24px' }}>
+            Game Over
+          </h1>
+          <button
+            onClick={handleRestart}
+            style={{
+              padding: '12px 24px',
+              fontSize: '20px',
+              fontWeight: 'bold',
+              backgroundColor: '#fff',
+              border: 'none',
+              borderRadius: '8px',
+              cursor: 'pointer',
+            }}
+          >
+            Restart
+          </button>
         </div>
       )}
 
       <div style={{ display: 'flex', gap: '40px' }}>
-        <div>
-          <h1 style={{ color: 'white' }}>React Tetris</h1>
-          <Board board={drawBoard()} />
-        </div>
+        <Board board={drawBoard()} />
         <NextTetrominos queue={tetrominoQueue} />
       </div>
     </div>
